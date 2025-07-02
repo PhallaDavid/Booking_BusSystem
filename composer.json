@@ -11,6 +11,7 @@
         "laravel/sanctum": "^4.1",
         "laravel/socialite": "^5.21",
         "laravel/tinker": "^2.10.1",
+        "simplesoftwareio/simple-qrcode": "*",
         "spatie/laravel-permission": "^6.20"
     },
     "require-dev": {

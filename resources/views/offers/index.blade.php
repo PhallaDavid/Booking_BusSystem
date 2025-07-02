@@ -21,7 +21,10 @@
                     <th class="px-4 py-2 border">Title</th>
                     <th class="px-4 py-2 border">Image</th>
                     <th class="px-4 py-2 border">Code</th>
+                    <th class="px-4 py-2 border">Promotion Start Date</th>
+                    <th class="px-4 py-2 border">Promotion End Date</th>
                     <th class="px-4 py-2 border">Valid Till</th>
+                    <th class="px-4 py-2 border">Promotion %</th>
                     <th class="px-4 py-2 border">Actions</th>
                 </tr>
             </thead>
@@ -36,7 +39,10 @@
                         @endif
                     </td>
                     <td class="px-4 py-2 border">{{ $offer->code }}</td>
+                    <td class="px-4 py-2 border">{{ $offer->start_date ?? '-' }}</td>
+                    <td class="px-4 py-2 border">{{ $offer->end_date ?? '-' }}</td>
                     <td class="px-4 py-2 border">{{ $offer->valid_till }}</td>
+                    <td class="px-4 py-2 border">{{ $offer->discount_percent ?? '-' }}%</td>
                     <td class="px-4 py-2 border">
                         <button onclick="editOffer({{ $offer->id }})" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 mr-2">Edit</button>
                         <button onclick="deleteOffer({{ $offer->id }})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>

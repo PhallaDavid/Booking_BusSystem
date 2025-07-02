@@ -37,13 +37,19 @@ class RolesAndPermissionsSeeder extends Seeder
             'offer-create',
             'offer-edit',
             'offer-delete',
+            'offer-show',
             'bus-list',
             'bus-create',
             'bus-edit',
             'bus-delete',
+            'bus-show',
             'booking-list',
+            'booking-create',
             'booking-edit',
             'booking-delete',
+            'booking-show',
+            'dashboard-view',
+            'settings-view',
         ];
 
         foreach ($permissions as $permission) {
@@ -64,18 +70,28 @@ class RolesAndPermissionsSeeder extends Seeder
             'role-list',
             'role-create',
             'role-edit',
+            'role-delete',
             'permission-list',
+            'permission-create',
+            'permission-edit',
+            'permission-delete',
             'offer-list',
             'offer-create',
             'offer-edit',
             'offer-delete',
+            'offer-show',
             'bus-list',
             'bus-create',
             'bus-edit',
             'bus-delete',
+            'bus-show',
             'booking-list',
+            'booking-create',
             'booking-edit',
             'booking-delete',
+            'booking-show',
+            'dashboard-view',
+            'settings-view',
         ]);
 
         $role = Role::firstOrCreate(['name' => 'sale']);
@@ -84,6 +100,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'role-list',
             'permission-list',
             'bus-list',
+            'bus-show',
+            'booking-list',
+            'booking-show',
+            'offer-list',
+            'offer-show',
+            'dashboard-view',
         ]);
 
         $role = Role::firstOrCreate(['name' => 'customer']);

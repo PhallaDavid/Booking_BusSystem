@@ -48,12 +48,31 @@ class BookingApiController extends Controller
         }
 
         // Calculate total price
-        $totalPrice = $bus->price * count($seatNumbers);
+        $originalPrice = $bus->price * count($seatNumbers);
+        $pricePerSeat = $bus->getCurrentPrice();
+        $totalPrice = $pricePerSeat * count($seatNumbers);
         $discountAmount = 0;
+        $appliedOffer = null;
         if (!empty($validated['discount_code'])) {
-            // TODO: Implement real discount logic
-            $discountAmount = 0.1 * $totalPrice; // Example: 10% off
-            $totalPrice -= $discountAmount;
+            // Check for valid offer
+            $offer = \App\Models\Offer::where('code', $validated['discount_code'])
+                ->whereDate('valid_till', '>=', now())
+                ->first();
+            if (
+                $offer &&
+                (!$offer->start_date || $offer->start_date <= now()->toDateString()) &&
+                (!$offer->end_date || $offer->end_date >= now()->toDateString())
+            ) {
+                // Use offer's discount_percent if set, else default to 10%
+                $percent = $offer->discount_percent ?? 10;
+                $discountAmount = ($percent / 100) * $totalPrice;
+                $totalPrice -= $discountAmount;
+                $appliedOffer = $offer;
+            } else {
+                // fallback: old logic (e.g. 10% off for any code)
+                $discountAmount = 0.1 * $totalPrice;
+                $totalPrice -= $discountAmount;
+            }
         }
 
         DB::beginTransaction();
@@ -109,12 +128,17 @@ class BookingApiController extends Controller
                 $userName = $user ? ($user->name ?? 'User#' . $user->id) : 'Guest';
                 $message = "N.O: {$booking->id}\n" .
                     "New Booking\n" .
-                    "Booked by: {$userName}\n" .
-                    "Bus: {$bus->name}\n" .
-                    "From: {$bus->departure} To: {$bus->arrival}\n" .
+                    "Customer: {$userName}\n" .
+                    "Company: {$bus->name}\n" .
+                    "From: {$bus->departure}\n" .
+                    " To: {$bus->arrival}\n" .
                     "Date: {$booking->travel_date}\n" .
                     "Seats: " . implode(', ', $seatNumbers) . "\n" .
                     "Passengers: " . implode(', ', array_map(fn($p) => $p['name'], $passengers)) . "\n" .
+                    "Original: $" . number_format($originalPrice, 2) . "\n" .
+                    ($bus->isPromotionActive() ? ("Promotion: $" . number_format($pricePerSeat, 2) . " per seat\n") : "") .
+                    ($discountAmount > 0 ? ("Discount: -$" . number_format($discountAmount, 2) . "\n") : "") .
+                    (isset($appliedOffer) ? ("Offer: {$appliedOffer->code}\n") : "") .
                     "Total: $" . number_format($totalPrice, 2) . "\n" .
                     "Ticket: {$ticket->ticket_number}";
                 $response = Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [

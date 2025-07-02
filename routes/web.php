@@ -24,11 +24,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index')->middleware('can:role-list');
 
-    Route::resource('users', UserController::class)->except(['index'])->middleware('can:user-edit');
-    Route::resource('roles', RoleController::class)->except(['index', 'show'])->middleware('can:role-edit');
-    Route::resource('permissions', PermissionController::class)->except(['index', 'show'])->middleware('can:permission-edit');
-    Route::resource('offers', OfferController::class);
-    Route::resource('buses', BusController::class);
+    Route::resource('users', UserController::class)->except(['index'])->middleware('permission:user-edit');
+    Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:role-edit');
+    Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:permission-edit');
+    Route::resource('offers', OfferController::class)->middleware('permission:offer-list|offer-create|offer-edit|offer-delete|offer-show');
+    Route::resource('buses', BusController::class)->middleware('permission:bus-list|bus-create|bus-edit|bus-delete|bus-show');
     Route::get('customers', [UserController::class, 'customers'])->name('users.customers');
 
     // Booking flow routes
@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('booking/bus/{busId}/seats', [BookingController::class, 'selectSeats'])->name('booking.selectSeats');
     Route::post('booking/bus/{busId}/passenger-info', [BookingController::class, 'passengerInfo'])->name('booking.passengerInfo');
     Route::post('booking/bus/{busId}/store', [BookingController::class, 'store'])->name('booking.store');
-    Route::resource('bookings', BookingController::class)->only(['index', 'update', 'destroy', 'show']);
+    Route::resource('bookings', BookingController::class)->only(['index', 'update', 'destroy', 'show'])->middleware('permission:booking-list|booking-edit|booking-delete|booking-show');
 });
 
 Route::get('/auth/google', [App\Http\Controllers\Auth\GoogleLoginController::class, 'redirectToGoogle'])->name('auth.google');

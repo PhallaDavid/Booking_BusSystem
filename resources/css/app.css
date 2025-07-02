@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body,
+.font-sans {
+    font-size: 13px !important;
+}
+
+/* Make all tables compact */
+table {
+    font-size: 12px !important;
+}
+table th,
+table td {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+/* Make form inputs smaller */
+input,
+select,
+textarea,
+button {
+    font-size: 13px !important;
+    padding: 0.25rem 0.5rem !important;
+    height: 2rem !important;
+}

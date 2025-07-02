@@ -24,6 +24,12 @@
             <label class="block text-sm font-medium text-gray-600 mb-1">Departure Date</label>
             <input type="date" name="departure_date" value="{{ request('departure_date') }}" class="border rounded px-3 py-2 w-40">
         </div>
+        <div class="flex items-center">
+            <label class="flex items-center">
+                <input type="checkbox" name="active_promotions" value="1" {{ request('active_promotions') ? 'checked' : '' }} class="mr-2">
+                <span class="text-sm font-medium text-gray-600">Active Promotions Only</span>
+            </label>
+        </div>
         <div>
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Search</button>
         </div>
@@ -41,7 +47,9 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Departure</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Arrival</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Promotion</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seats</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Available Seats</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                 </tr>
             </thead>
@@ -62,8 +70,45 @@
                     <td class="px-6 py-4">{{ $bus->arrival }}</td>
                     <td class="px-6 py-4">{{ $bus->departure_time }}</td>
                     <td class="px-6 py-4">{{ $bus->arrival_time }}</td>
-                    <td class="px-6 py-4">${{ $bus->price }}</td>
+                    <td class="px-6 py-4">
+                        @if($bus->isPromotionActive())
+                        <div class="text-sm">
+                            <span class="line-through text-gray-500">${{ number_format($bus->price, 2) }}</span>
+                            <br>
+                            <span class="text-red-600 font-bold">${{ number_format($bus->getCurrentPrice(), 2) }}</span>
+                            <br>
+                            <span class="text-xs text-green-600">{{ $bus->promotion_discount }}% OFF</span>
+                        </div>
+                        @else
+                        <span>${{ number_format($bus->price, 2) }}</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4">
+                        @if($bus->is_promotion)
+                        @if($bus->isPromotionActive())
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            Active
+                        </span>
+                        <div class="text-xs text-gray-500 mt-1">
+                            {{ $bus->promotion_start_date->format('M d') }} - {{ $bus->promotion_end_date->format('M d') }}
+                        </div>
+                        @else
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            Inactive
+                        </span>
+                        @endif
+                        @else
+                        <span class="text-gray-400">No Promotion</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4">{{ $bus->seats }}</td>
+                    <td class="px-6 py-4">
+                        @if(isset($bus->available_seats) && is_array($bus->available_seats))
+                            {{ implode(', ', $bus->available_seats) }}
+                        @else
+                            <span class="text-gray-400">-</span>
+                        @endif
+                    </td>
                     <td class="px-6 py-4 flex gap-2">
                         <a href="{{ route('buses.edit', $bus) }}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Edit</a>
                         <form action="{{ route('buses.destroy', $bus) }}" method="POST" onsubmit="return confirm('Are you sure?');">
@@ -75,7 +120,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" class="px-6 py-4 text-center text-gray-500">No buses found.</td>
+                    <td colspan="12" class="px-6 py-4 text-center text-gray-500">No buses found.</td>
                 </tr>
                 @endforelse
             </tbody>

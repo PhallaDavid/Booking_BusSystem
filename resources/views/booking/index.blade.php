@@ -45,6 +45,8 @@
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Original</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seats</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
@@ -67,6 +69,8 @@
                             {{ ucfirst($booking->status) }}
                         </span>
                     </td>
+                    <td class="px-6 py-4">${{ number_format(($booking->bus ? $booking->bus->price * $booking->seats->count() : 0), 2) }}</td>
+                    <td class="px-6 py-4">${{ number_format($booking->discount_amount, 2) }}</td>
                     <td class="px-6 py-4">${{ number_format($booking->total_price, 2) }}</td>
                     <td class="px-6 py-4">{{ $booking->seats->pluck('seat_number')->join(', ') }}</td>
                     <td class="px-6 py-4 relative">
@@ -120,6 +124,8 @@
                                     <div class="mb-2"><strong>Bus:</strong> {{ $booking->bus ? $booking->bus->name : '-' }}</div>
                                     <div class="mb-2"><strong>Date:</strong> {{ $booking->travel_date }}</div>
                                     <div class="mb-2"><strong>Status:</strong> {{ ucfirst($booking->status) }}</div>
+                                    <div class="mb-2"><strong>Original Price:</strong> ${{ $booking->bus ? number_format($booking->bus->price * $booking->seats->count(), 2) : '0.00' }}</div>
+                                    <div class="mb-2"><strong>Discount:</strong> ${{ number_format($booking->discount_amount, 2) }}</div>
                                     <div class="mb-2"><strong>Total:</strong> ${{ number_format($booking->total_price, 2) }}</div>
                                     <div class="mb-2"><strong>Discount Code:</strong> {{ $booking->discount_code ?? '-' }}</div>
                                     <div class="mb-2"><strong>Payment Method:</strong> {{ $booking->payment_method ?? '-' }}</div>

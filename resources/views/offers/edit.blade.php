@@ -38,6 +38,18 @@
                 <label for="valid_till" class="block font-medium text-sm text-gray-700">Valid Till</label>
                 <input id="valid_till" class="block mt-1 w-full rounded-md border-gray-300" type="date" name="valid_till" value="{{ old('valid_till', $offer->valid_till instanceof \Illuminate\Support\Carbon ? $offer->valid_till->format('Y-m-d') : $offer->valid_till) }}" required />
             </div>
+            <div>
+                <label for="discount_percent" class="block font-medium text-sm text-gray-700">Discount Percent (%)</label>
+                <input id="discount_percent" class="block mt-1 w-full rounded-md border-gray-300" type="number" name="discount_percent" value="{{ old('discount_percent', $offer->discount_percent) }}" min="0" max="100" step="0.01" />
+            </div>
+            <div>
+                <label for="start_date" class="block font-medium text-sm text-gray-700">Promotion Start Date</label>
+                <input id="start_date" class="block mt-1 w-full rounded-md border-gray-300" type="date" name="start_date" value="{{ old('start_date', $offer->start_date ?? '') }}" />
+            </div>
+            <div>
+                <label for="end_date" class="block font-medium text-sm text-gray-700">Promotion End Date</label>
+                <input id="end_date" class="block mt-1 w-full rounded-md border-gray-300" type="date" name="end_date" value="{{ old('end_date', $offer->end_date ?? '') }}" />
+            </div>
         </div>
         <div class="flex items-center justify-end mt-4">
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 inline-block">Update</button>

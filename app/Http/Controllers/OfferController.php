@@ -57,6 +57,7 @@ class OfferController extends Controller
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'code' => 'required',
             'valid_till' => 'required|date',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $imageName = time() . '.' . $request->image->extension();
@@ -67,6 +68,9 @@ class OfferController extends Controller
         $offer->image = $imageName;
         $offer->code = $request->code;
         $offer->valid_till = $request->valid_till;
+        $offer->discount_percent = $request->discount_percent;
+        $offer->start_date = $request->start_date;
+        $offer->end_date = $request->end_date;
         $offer->save();
 
         return redirect()->route('offers.index')
@@ -98,6 +102,7 @@ class OfferController extends Controller
             'title' => 'required',
             'code' => 'required',
             'valid_till' => 'required|date',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $imageName = $offer->image;
@@ -113,6 +118,9 @@ class OfferController extends Controller
         $offer->image = $imageName;
         $offer->code = $request->code;
         $offer->valid_till = $request->valid_till;
+        $offer->discount_percent = $request->discount_percent;
+        $offer->start_date = $request->start_date;
+        $offer->end_date = $request->end_date;
         $offer->save();
 
         return redirect()->route('offers.index')

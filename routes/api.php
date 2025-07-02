@@ -22,3 +22,5 @@ Route::post('register', [RegisteredUserController::class, 'store']);
 Route::post('login', [AuthenticatedSessionController::class, 'store']);
 Route::middleware('auth:sanctum')->get('profile', [ProfileController::class, 'apiProfile']);
 Route::middleware('auth:sanctum')->post('bookings', [BookingApiController::class, 'store']);
+Route::get('buses/{id}', [BusController::class, 'apiShow']);
+Route::get('buses-type/{type}', [BusController::class, 'apiByType']);

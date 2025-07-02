@@ -35,7 +35,14 @@ class BusController extends Controller
                 $query->where('departure_time', $departureDate);
             }
         }
+        if ($request->filled('active_promotions')) {
+            $query->withActivePromotions();
+        }
         $buses = $query->get();
+        // Add available_seats to each bus for the Blade view
+        foreach ($buses as $bus) {
+            $bus->available_seats = method_exists($bus, 'getAvailableSeats') ? $bus->getAvailableSeats() : [];
+        }
         return view('buses.index', compact('buses'));
     }
 
@@ -59,15 +66,25 @@ class BusController extends Controller
             'arrival' => 'required|string|max:255',
             'departure_time' => 'required|date',
             'arrival_time' => 'required|date',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
             'seats' => 'required|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'is_promotion' => 'boolean',
+            'promotion_start_date' => 'nullable|date|required_if:is_promotion,1',
+            'promotion_end_date' => 'nullable|date|required_if:is_promotion,1|after:promotion_start_date',
+            'promotion_discount' => 'nullable|numeric|min:0|max:100|required_if:is_promotion,1',
+            'type' => 'nullable|in:simple,premium',
         ]);
 
         if ($request->hasFile('image')) {
             $imageName = time() . '.' . $request->image->extension();
             $request->image->move(public_path('images'), $imageName);
             $validated['image'] = $imageName;
+        }
+
+        // Calculate promotion price if promotion is enabled
+        if (isset($validated['is_promotion']) && $validated['is_promotion'] && isset($validated['promotion_discount'])) {
+            $validated['promotion_price'] = $validated['price'] * (1 - $validated['promotion_discount'] / 100);
         }
 
         Bus::create($validated);
@@ -102,9 +119,14 @@ class BusController extends Controller
             'arrival' => 'required|string|max:255',
             'departure_time' => 'required|date',
             'arrival_time' => 'required|date',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
             'seats' => 'required|integer|min:1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'is_promotion' => 'boolean',
+            'promotion_start_date' => 'nullable|date|required_if:is_promotion,1',
+            'promotion_end_date' => 'nullable|date|required_if:is_promotion,1|after:promotion_start_date',
+            'promotion_discount' => 'nullable|numeric|min:0|max:100|required_if:is_promotion,1',
+            'type' => 'nullable|in:simple,premium',
         ]);
 
         if ($request->hasFile('image')) {
@@ -115,6 +137,18 @@ class BusController extends Controller
             $imageName = time() . '.' . $request->image->extension();
             $request->image->move(public_path('images'), $imageName);
             $validated['image'] = $imageName;
+        }
+
+        // Calculate promotion price if promotion is enabled
+        if (isset($validated['is_promotion']) && $validated['is_promotion'] && isset($validated['promotion_discount'])) {
+            $validated['promotion_price'] = $validated['price'] * (1 - $validated['promotion_discount'] / 100);
+        } else {
+            // Clear promotion fields if promotion is disabled
+            $validated['is_promotion'] = false;
+            $validated['promotion_start_date'] = null;
+            $validated['promotion_end_date'] = null;
+            $validated['promotion_discount'] = null;
+            $validated['promotion_price'] = null;
         }
 
         $bus->update($validated);
@@ -155,6 +189,9 @@ class BusController extends Controller
         if ($request->filled('return_date')) {
             $query->where('arrival_time', $request->input('return_date'));
         }
+        if ($request->filled('active_promotions')) {
+            $query->withActivePromotions();
+        }
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -172,6 +209,16 @@ class BusController extends Controller
 
         $buses = $query->get()->map(function ($bus) {
             $bus->image_url = $bus->image ? asset('images/' . $bus->image) : null;
+            $bus->current_price = $bus->getCurrentPrice();
+            $bus->is_promotion_active = $bus->isPromotionActive();
+            $bus->promotion_info = $bus->is_promotion ? [
+                'start_date' => $bus->promotion_start_date?->format('Y-m-d'),
+                'end_date' => $bus->promotion_end_date?->format('Y-m-d'),
+                'discount_percentage' => $bus->promotion_discount,
+                'promotion_price' => $bus->promotion_price,
+                'is_active' => $bus->isPromotionActive()
+            ] : null;
+            $bus->available_seats = $bus->getAvailableSeats();
             return $bus;
         });
         return response()->json([
@@ -201,5 +248,47 @@ class BusController extends Controller
         return response()->json([
             'cities' => $cities
         ]);
+    }
+
+    /**
+     * Get a single bus by ID as JSON for API.
+     */
+    public function apiShow($id)
+    {
+        $bus = Bus::findOrFail($id);
+        $bus->image_url = $bus->image ? asset('images/' . $bus->image) : null;
+        $bus->current_price = $bus->getCurrentPrice();
+        $bus->is_promotion_active = $bus->isPromotionActive();
+        $bus->promotion_info = $bus->is_promotion ? [
+            'start_date' => $bus->promotion_start_date?->format('Y-m-d'),
+            'end_date' => $bus->promotion_end_date?->format('Y-m-d'),
+            'discount_percentage' => $bus->promotion_discount,
+            'promotion_price' => $bus->promotion_price,
+            'is_active' => $bus->isPromotionActive()
+        ] : null;
+        $bus->available_seats = $bus->getAvailableSeats();
+        return response()->json(['data' => $bus]);
+    }
+
+    /**
+     * Get buses by type as JSON for API.
+     */
+    public function apiByType($type)
+    {
+        $buses = Bus::where('type', $type)->get()->map(function ($bus) {
+            $bus->image_url = $bus->image ? asset('images/' . $bus->image) : null;
+            $bus->current_price = $bus->getCurrentPrice();
+            $bus->is_promotion_active = $bus->isPromotionActive();
+            $bus->promotion_info = $bus->is_promotion ? [
+                'start_date' => $bus->promotion_start_date?->format('Y-m-d'),
+                'end_date' => $bus->promotion_end_date?->format('Y-m-d'),
+                'discount_percentage' => $bus->promotion_discount,
+                'promotion_price' => $bus->promotion_price,
+                'is_active' => $bus->isPromotionActive()
+            ] : null;
+            $bus->available_seats = $bus->getAvailableSeats();
+            return $bus;
+        });
+        return response()->json(['data' => $buses]);
     }
 }

@@ -27,18 +27,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $user = $request->user();
-        // If the request expects JSON (API login), return token
-        if ($request->expectsJson()) {
             $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => $user,
             ]);
-        }
-
-        $request->session()->regenerate();
-        return redirect()->intended(route('dashboard', absolute: false));
     }
 
     /**

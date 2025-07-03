@@ -20,7 +20,7 @@
             <input type="text" name="name" class="w-full border px-3 py-2 rounded" required value="{{ old('name', $permission->name) }}">
         </div>
         <div class="flex justify-end">
-            <button type="submit" class="bg-gradient-to-r from-indigo-500 to-emerald-500 text-white px-6 py-2 rounded-lg shadow-md font-semibold transition hover:from-indigo-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400">Update Permission</button>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Update Permission</button>
         </div>
     </form>
 </div>

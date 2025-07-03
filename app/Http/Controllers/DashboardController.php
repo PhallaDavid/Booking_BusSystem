@@ -41,7 +41,7 @@ class DashboardController extends Controller
         }
         foreach ($bookings as $booking) {
             $m = Carbon::parse($booking->travel_date)->month;
-            $monthlyProfit[$m] += $booking->total_price;
+            $monthlyProfit[$m] += ($booking->total_price - $booking->discount_amount);
         }
         // Format for chart
         $profitLabels = array_map(function ($m) {

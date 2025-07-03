@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="flex min-h-screen items-center justify-center ">
-        <div class="w-full max-w-md  rounded-lgl  p-8">
+        <div class="w-full max-w-md bg-gray-100  rounded-lg p-8">
             <h2 class="text-2xl font-bold text-center text-indigo-700 mb-6">Sign in to your account</h2>
     <x-auth-session-status class="mb-4" :status="session('status')" />
 

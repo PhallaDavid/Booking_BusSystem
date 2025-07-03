@@ -30,8 +30,11 @@ class GoogleLoginController extends Controller
         if ($user) {
             if (!$user->google_id) {
                 $user->google_id = $googleUser->id;
-                $user->save();
             }
+            if (is_null($user->email_verified_at)) {
+                $user->email_verified_at = now();
+            }
+            $user->save();
             Auth::login($user);
             return redirect('/dashboard');
         }
@@ -40,7 +43,8 @@ class GoogleLoginController extends Controller
             'name' => $googleUser->name,
             'email' => $googleUser->email,
             'google_id' => $googleUser->id,
-            'password' => Hash::make(Str::random(24)) // Or null if you handled that
+            'password' => Hash::make(Str::random(24)),
+            'email_verified_at' => now(),
         ]);
 
         Auth::login($newUser);
@@ -54,7 +58,7 @@ class GoogleLoginController extends Controller
         ]);
 
         try {
-            $googleUser = Socialite::driver('google')->userFromToken($request->token);
+            $googleUser = Socialite::stateless()->driver('google')->userFromToken($request->token);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Invalid credentials'], 401);
         }
@@ -64,14 +68,18 @@ class GoogleLoginController extends Controller
         if ($user) {
             if (!$user->google_id) {
                 $user->google_id = $googleUser->id;
-                $user->save();
             }
+            if (is_null($user->email_verified_at)) {
+                $user->email_verified_at = now();
+            }
+            $user->save();
         } else {
             $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
-                'password' => Hash::make(Str::random(24))
+                'password' => Hash::make(Str::random(24)),
+                'email_verified_at' => now(),
             ]);
         }
 

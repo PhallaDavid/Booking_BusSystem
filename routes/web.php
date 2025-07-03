@@ -12,7 +12,7 @@ use App\Http\Controllers\BusController;
 use App\Http\Controllers\BookingController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');

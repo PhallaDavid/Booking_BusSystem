@@ -10,7 +10,7 @@
         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search offers..." class="border rounded px-3 py-2 w-64 focus:ring-emerald-400 focus:border-emerald-400">
         <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 inline-block">Search</button>
         @if(request('search'))
-        <a href="{{ url()->current() }}" class="text-sm text-gray-500 hover:underline ml-2">Clear</a>
+        <a href="{{ url()->current() }}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 font-semibold shadow">Clear</a>
         @endif
     </form>
     <div class="overflow-x-auto mt-4">

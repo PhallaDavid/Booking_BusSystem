@@ -5,7 +5,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Bookings</h1>
     </div>
-    <form method="GET" action="" class="mb-6 flex flex-wrap gap-4 items-end">
+    <form method="GET" action="{{ route('bookings.index') }}" class="mb-6 flex flex-wrap gap-4 items-end">
         <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">User ID</label>
             <input type="text" name="user_id" value="{{ request('user_id') }}" class="border rounded px-3 py-2 w-40" placeholder="All">
@@ -152,6 +152,14 @@
                 @endforelse
             </tbody>
         </table>
+        @if($bookings->count())
+        <div class="flex justify-end bg-white border-t border-gray-200">
+            <div class="px-6 py-4 font-bold text-lg">
+                Gross Total: ${{ number_format($bookings->sum('total_price'), 2) }}<br>
+                Net Total (after discount): ${{ number_format($bookings->sum(function($b) { return $b->total_price - $b->discount_amount; }), 2) }}
+            </div>
+        </div>
+        @endif
     </div>
 </div>
 @endsection

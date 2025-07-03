@@ -25,7 +25,10 @@
             </div>
             <div>
                 <label for="code" class="block font-medium text-sm text-gray-700">Code</label>
-                <input type="text" name="code" id="code" class="block mt-1 w-full rounded-md border-gray-300" value="{{ old('code') }}" required>
+                <div class="flex">
+                    <input type="text" name="code" id="code" class="block mt-1 w-full rounded-md border-gray-300" value="{{ old('code') }}" required readonly>
+                    <button type="button" onclick="generateOfferCode()" class="ml-2 px-3 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600">Generate</button>
+                </div>
             </div>
             <div>
                 <label for="valid_till" class="block font-medium text-sm text-gray-700">Valid Till</label>
@@ -45,8 +48,22 @@
             </div>
         </div>
         <div class="flex items-center justify-end mt-4">
-            <button type="submit" class="bg-gradient-to-r from-indigo-500 to-emerald-500 text-white px-6 py-2 rounded-lg shadow-md font-semibold transition hover:from-indigo-600 hover:to-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400">Create</button>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Create</button>
         </div>
     </form>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    function generateOfferCode() {
+        const length = 8;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < length; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('code').value = code;
+    }
+</script>
 @endsection

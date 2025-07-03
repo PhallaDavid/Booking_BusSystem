@@ -39,23 +39,17 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'email_verified_at' => now(),
         ]);
 
         // Assign customer role
         $user->assignRole('customer');
 
-        if ($request->expectsJson()) {
             $token = $user->createToken('auth_token')->plainTextToken;
             return response()->json([
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => $user,
-            ]);
-        }
-
-        event(new Registered($user));
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        ], 201);
     }
 }

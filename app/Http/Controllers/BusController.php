@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BusController extends Controller
 {
@@ -169,14 +170,19 @@ class BusController extends Controller
      */
     public function apiIndex(Request $request)
     {
+        Log::info('API bus search', [
+            'from' => $request->input('from'),
+            'to' => $request->input('to'),
+            'departure_date' => $request->input('departure_date'),
+        ]);
         $query = Bus::query();
 
         // All search fields are optional
         if ($request->filled('from')) {
-            $query->where('departure', 'like', "%" . $request->input('from') . "%");
+            $query->where('departure', $request->input('from'));
         }
         if ($request->filled('to')) {
-            $query->where('arrival', 'like', "%" . $request->input('to') . "%");
+            $query->where('arrival', $request->input('to'));
         }
         if ($request->filled('departure_date')) {
             $departureDate = $request->input('departure_date');
@@ -185,9 +191,6 @@ class BusController extends Controller
             } else {
                 $query->where('departure_time', $departureDate);
             }
-        }
-        if ($request->filled('return_date')) {
-            $query->where('arrival_time', $request->input('return_date'));
         }
         if ($request->filled('active_promotions')) {
             $query->withActivePromotions();
@@ -207,7 +210,7 @@ class BusController extends Controller
             });
         }
 
-        $buses = $query->get()->map(function ($bus) {
+        $departureBuses = $query->get()->map(function ($bus) {
             $bus->image_url = $bus->image ? asset('images/' . $bus->image) : null;
             $bus->current_price = $bus->getCurrentPrice();
             $bus->is_promotion_active = $bus->isPromotionActive();
@@ -221,8 +224,58 @@ class BusController extends Controller
             $bus->available_seats = $bus->getAvailableSeats();
             return $bus;
         });
+
+        // Handle return trip if return_date is provided
+        if ($request->filled('return_date') && $request->filled('from') && $request->filled('to')) {
+            $returnQuery = Bus::query();
+            $returnQuery->where('departure', 'like', "%" . $request->input('to') . "%");
+            $returnQuery->where('arrival', 'like', "%" . $request->input('from') . "%");
+            $returnDate = $request->input('return_date');
+            if (strlen($returnDate) === 10) {
+                $returnQuery->whereDate('departure_time', $returnDate);
+            } else {
+                $returnQuery->where('departure_time', $returnDate);
+            }
+            if ($request->filled('active_promotions')) {
+                $returnQuery->withActivePromotions();
+            }
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $returnQuery->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%")
+                        ->orWhere('provider', 'like', "%$search%")
+                        ->orWhere('departure', 'like', "%$search%")
+                        ->orWhere('arrival', 'like', "%$search%")
+                        ->orWhere('price', 'like', "%$search%")
+                        ->orWhere('seats', 'like', "%$search%")
+                        ->orWhere('departure_time', 'like', "%$search%")
+                        ->orWhere('arrival_time', 'like', "%$search%")
+                    ;
+                });
+            }
+            $returnBuses = $returnQuery->get()->map(function ($bus) {
+                $bus->image_url = $bus->image ? asset('images/' . $bus->image) : null;
+                $bus->current_price = $bus->getCurrentPrice();
+                $bus->is_promotion_active = $bus->isPromotionActive();
+                $bus->promotion_info = $bus->is_promotion ? [
+                    'start_date' => $bus->promotion_start_date?->format('Y-m-d'),
+                    'end_date' => $bus->promotion_end_date?->format('Y-m-d'),
+                    'discount_percentage' => $bus->promotion_discount,
+                    'promotion_price' => $bus->promotion_price,
+                    'is_active' => $bus->isPromotionActive()
+                ] : null;
+                $bus->available_seats = $bus->getAvailableSeats();
+                return $bus;
+            });
+            return response()->json([
+                'departure' => $departureBuses,
+                'return' => $returnBuses
+            ]);
+        }
+
+        // Default: only departure
         return response()->json([
-            'data' => $buses
+            'departure' => $departureBuses
         ]);
     }
 

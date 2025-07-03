@@ -39,10 +39,19 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <div x-show="open" @click.away="open = false" class="absolute left-0 w-full bg-white text-indigo-900 rounded shadow-lg mt-2 z-50" style="display: none;" x-transition>
-                <a href="{{ route('settings.index') }}" class="block px-4 py-2 hover:bg-indigo-100">Settings</a>
-                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-indigo-100">Profile</a>
-                <a href="{{ route('users.customers') }}" class="block px-4 py-2 hover:bg-indigo-100">Customers</a>
+            <div x-show="open" @click.away="open = false" class="absolute left-0  w-full    mt-2 z-50" style="display: none;" x-transition>
+                <a href="{{ route('settings.index') }}" class="block px-4 text-white py-2 hover:bg-indigo-800 flex items-center gap-2">
+                    <i class="fas fa-cog text-yellow-300 w-4 h-4"></i>
+                    <span>User</span>
+                </a>
+                <a href="{{ route('profile.edit') }}" class="block px-4 text-white py-2 hover:bg-indigo-800 flex items-center gap-2">
+                    <i class="fas fa-user text-blue-300 w-4 h-4"></i>
+                    <span>Profile</span>
+                </a>
+                <a href="{{ route('users.customers') }}" class="block px-4 text-white py-2 hover:bg-indigo-800 flex items-center gap-2">
+                    <i class="fas fa-users text-green-300 w-4 h-4"></i>
+                    <span>Customers</span>
+                </a>
             </div>
         </div>
     </nav>

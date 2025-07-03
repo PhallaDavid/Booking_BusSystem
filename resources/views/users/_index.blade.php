@@ -8,9 +8,9 @@
     <form method="GET" action="{{ route('settings.index') }}" class="mb-4 flex items-center space-x-2">
         <input type="text" name="user_search" value="{{ request('user_search') }}" placeholder="Search users..." class="border rounded px-3 py-2 w-64 focus:ring-emerald-400 focus:border-emerald-400">
         <input type="hidden" name="tab" value="users">
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow px-4 py-2 transition">Search</button>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Search</button>
         @if(request('user_search'))
-        <a href="{{ route('settings.index') }}" class="text-sm text-gray-500 hover:underline ml-2">Clear</a>
+        <a href="{{ route('settings.index') }}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 font-semibold shadow">Clear</a>
         @endif
     </form>
     @php

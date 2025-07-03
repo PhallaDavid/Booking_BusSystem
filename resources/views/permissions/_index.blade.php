@@ -8,9 +8,9 @@
     <form method="GET" action="{{ route('settings.index') }}" class="mb-4 flex items-center space-x-2">
         <input type="text" name="permission_search" value="{{ request('permission_search') }}" placeholder="Search permissions..." class="border rounded px-3 py-2 w-64 focus:ring-emerald-400 focus:border-emerald-400">
         <input type="hidden" name="tab" value="permissions">
-        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow px-4 py-2 transition">Search</button>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Search</button>
         @if(request('permission_search'))
-        <a href="{{ route('settings.index', ['tab' => 'permissions']) }}" class="text-sm text-gray-500 hover:underline ml-2">Clear</a>
+        <a href="{{ route('settings.index', ['tab' => 'permissions']) }}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 font-semibold shadow">Clear</a>
         @endif
     </form>
     <table class="min-w-full bg-white border border-gray-200">

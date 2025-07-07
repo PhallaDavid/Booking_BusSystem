@@ -12,6 +12,7 @@
         </ul>
     </div>
     @endif
+    @can('role-create')
     <form action="{{ route('roles.store') }}" method="POST" class="bg-white p-6 rounded shadow-md">
         @csrf
         <div class="mb-4">
@@ -33,5 +34,6 @@
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Create Role</button>
         </div>
     </form>
+    @endcan
 </div>
 @endsection

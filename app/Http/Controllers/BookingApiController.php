@@ -123,23 +123,42 @@ class BookingApiController extends Controller
 
             // Send Telegram notification
             try {
+                Log::info('DEBUG TELEGRAM ENV', [
+                    'botToken' => env('TELEGRAM_BOT_TOKEN'),
+                    'chatId' => env('TELEGRAM_CHAT_ID'),
+                ]);
                 $botToken = env('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN');
                 $chatId = env('TELEGRAM_CHAT_ID', 'YOUR_CHAT_ID');
                 $userName = $user ? ($user->name ?? 'User#' . $user->id) : 'Guest';
                 $message = "N.O: {$booking->id}\n" .
+
                     "New Booking\n" .
+
                     "Customer: {$userName}\n" .
+
                     "Company: {$bus->name}\n" .
+
                     "From: {$bus->departure}\n" .
-                    " To: {$bus->arrival}\n" .
+
+                    "To: {$bus->arrival}\n" .
+
                     "Date: {$booking->travel_date}\n" .
+
                     "Seats: " . implode(', ', $seatNumbers) . "\n" .
+
                     "Passengers: " . implode(', ', array_map(fn($p) => $p['name'], $passengers)) . "\n" .
+
                     "Original: $" . number_format($originalPrice, 2) . "\n" .
+
                     ($bus->isPromotionActive() ? ("Promotion: $" . number_format($pricePerSeat, 2) . " per seat\n") : "") .
+
                     ($discountAmount > 0 ? ("Discount: -$" . number_format($discountAmount, 2) . "\n") : "") .
+
                     (isset($appliedOffer) ? ("Offer: {$appliedOffer->code}\n") : "") .
                     "Total: $" . number_format($totalPrice, 2) . "\n" .
+
+                    "Payment: {$booking->payment_method}\n" .
+
                     "Ticket: {$ticket->ticket_number}";
                 $response = Http::withoutVerifying()->post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                     'chat_id' => $chatId,
@@ -161,5 +180,42 @@ class BookingApiController extends Controller
             Log::error('Booking failed: ' . $e->getMessage() . ' | Trace: ' . $e->getTraceAsString());
             return response()->json(['message' => 'Booking failed', 'error' => $e->getMessage()], 500);
         }
+    }
+
+    public function myBookings(Request $request)
+    {
+        try {
+            $user = $request->user();
+            $bookings = $user->bookings()->with(['bus', 'seats', 'ticket'])->latest()->get();
+            return response()->json(['data' => $bookings]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch bookings',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Cancel a booking (owned by user, not already cancelled, future departure).
+     * POST /api/user/bookings/{id}/cancel
+     */
+    public function cancelBooking(Request $request, $id)
+    {
+        $user = $request->user();
+        $booking = Booking::where('id', $id)->where('user_id', $user->id)->first();
+        if (!$booking) {
+            return response()->json(['message' => 'Booking not found or not owned by user.'], 404);
+        }
+        if ($booking->status === 'cancelled') {
+            return response()->json(['message' => 'Booking already cancelled.'], 422);
+        }
+        $bus = $booking->bus;
+        if (!$bus) {
+            return response()->json(['message' => 'Bus not found for this booking.'], 404);
+        }
+        $booking->status = 'cancelled';
+        $booking->save();
+        return response()->json(['message' => 'Booking cancelled successfully.', 'booking' => $booking]);
     }
 }

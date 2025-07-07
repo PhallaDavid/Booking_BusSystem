@@ -14,6 +14,13 @@ $activePromotionsCount ?? 0
 
     <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
+    <div class="mb-6">
+        <div class="bg-white p-4 rounded shadow flex flex-col md:flex-row gap-4 md:gap-12 items-center">
+            <div class="text-lg font-semibold text-gray-700">Gross Total: <span class="text-blue-700 font-bold">${{ number_format($grossTotal, 2) }}</span></div>
+            <div class="text-lg font-semibold text-gray-700">Net Total (after discount): <span class="text-green-700 font-bold">${{ number_format($netTotal, 2) }}</span></div>
+        </div>
+    </div>
+
     <!-- Filter Form -->
     <form method="GET" action="" class="mb-8 flex flex-wrap gap-4 items-end">
         <div>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bus;
+use App\Models\BusSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -39,6 +40,9 @@ class BusController extends Controller
         if ($request->filled('active_promotions')) {
             $query->withActivePromotions();
         }
+        if ($request->filled('type')) {
+            $query->where('type', $request->input('type'));
+        }
         $buses = $query->get();
         // Add available_seats to each bus for the Blade view
         foreach ($buses as $bus) {
@@ -52,7 +56,10 @@ class BusController extends Controller
      */
     public function create()
     {
-        return view('buses.create');
+        // Use fixed bus types as requested
+        $types = ['Premium', 'VIP', 'Minivan'];
+        
+        return view('buses.create', compact('types'));
     }
 
     /**
@@ -74,7 +81,7 @@ class BusController extends Controller
             'promotion_start_date' => 'nullable|date|required_if:is_promotion,1',
             'promotion_end_date' => 'nullable|date|required_if:is_promotion,1|after:promotion_start_date',
             'promotion_discount' => 'nullable|numeric|min:0|max:100|required_if:is_promotion,1',
-            'type' => 'nullable|in:simple,premium',
+            'type' => 'required|string|max:255',
         ]);
 
         if ($request->hasFile('image')) {
@@ -105,7 +112,10 @@ class BusController extends Controller
      */
     public function edit(Bus $bus)
     {
-        return view('buses.edit', compact('bus'));
+        // Use fixed bus types as requested
+        $types = ['Premium', 'VIP', 'Minivan'];
+        
+        return view('buses.edit', compact('bus', 'types'));
     }
 
     /**
@@ -127,7 +137,7 @@ class BusController extends Controller
             'promotion_start_date' => 'nullable|date|required_if:is_promotion,1',
             'promotion_end_date' => 'nullable|date|required_if:is_promotion,1|after:promotion_start_date',
             'promotion_discount' => 'nullable|numeric|min:0|max:100|required_if:is_promotion,1',
-            'type' => 'nullable|in:simple,premium',
+            'type' => 'required|string|max:255',
         ]);
 
         if ($request->hasFile('image')) {
@@ -210,6 +220,30 @@ class BusController extends Controller
             });
         }
 
+        $sortBy = $request->input('sort_by');
+        $sortOrder = $request->input('sort_order', 'asc');
+
+        switch ($sortBy) {
+            case 'departure':
+                $query->orderBy('departure_time', $sortOrder);
+                break;
+            case 'duration':
+                // Sort by duration in minutes (arrival_time - departure_time)
+                $query->orderByRaw('TIMESTAMPDIFF(MINUTE, departure_time, arrival_time) ' . $sortOrder);
+                break;
+            case 'arrival':
+                $query->orderBy('arrival_time', $sortOrder);
+                break;
+            case 'ratings':
+                // If you have a ratings field
+                $query->orderBy('ratings', $sortOrder);
+                break;
+            case 'fare':
+                $query->orderBy('price', $sortOrder);
+                break;
+                // seats_available will be sorted after fetching
+        }
+
         $departureBuses = $query->get()->map(function ($bus) {
             $bus->image_url = $bus->image ? asset('images/' . $bus->image) : null;
             $bus->current_price = $bus->getCurrentPrice();
@@ -224,6 +258,13 @@ class BusController extends Controller
             $bus->available_seats = $bus->getAvailableSeats();
             return $bus;
         });
+
+        // Sort by seats_available if requested
+        if ($sortBy === 'seats_available') {
+            $departureBuses = $departureBuses->sortBy(function ($bus) {
+                return count($bus->available_seats);
+            }, SORT_REGULAR, $sortOrder === 'desc')->values();
+        }
 
         // Handle return trip if return_date is provided
         if ($request->filled('return_date') && $request->filled('from') && $request->filled('to')) {
@@ -343,5 +384,64 @@ class BusController extends Controller
             return $bus;
         });
         return response()->json(['data' => $buses]);
+    }
+
+    /**
+     * Show recurring schedules for a bus (admin panel).
+     */
+    public function schedules($busId)
+    {
+        $bus = Bus::with('schedules')->findOrFail($busId);
+        return view('buses.schedules', compact('bus'));
+    }
+
+    /**
+     * Store a new recurring schedule for a bus.
+     */
+    public function storeSchedule(Request $request, $busId)
+    {
+        $bus = Bus::findOrFail($busId);
+        $validated = $request->validate([
+            'recurrence_type' => 'required|in:daily,weekly,custom',
+            'days_of_week' => 'nullable|array',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+        $validated['days_of_week'] = $validated['days_of_week'] ?? null;
+        $bus->schedules()->create($validated);
+        return redirect()->route('buses.schedules', $busId)->with('success', 'Schedule added.');
+    }
+
+    /**
+     * Update an existing recurring schedule for a bus.
+     */
+    public function updateSchedule(Request $request, $busId, $scheduleId)
+    {
+        $bus = Bus::findOrFail($busId);
+        $schedule = $bus->schedules()->findOrFail($scheduleId);
+        $validated = $request->validate([
+            'recurrence_type' => 'required|in:daily,weekly,custom',
+            'days_of_week' => 'nullable|array',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+        $validated['days_of_week'] = $validated['days_of_week'] ?? null;
+        $schedule->update($validated);
+        return redirect()->route('buses.schedules', $busId)->with('success', 'Schedule updated.');
+    }
+
+    /**
+     * Delete a recurring schedule for a bus.
+     */
+    public function destroySchedule($busId, $scheduleId)
+    {
+        $bus = Bus::findOrFail($busId);
+        $schedule = $bus->schedules()->findOrFail($scheduleId);
+        $schedule->delete();
+        return redirect()->route('buses.schedules', $busId)->with('success', 'Schedule deleted.');
     }
 }

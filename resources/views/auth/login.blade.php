@@ -40,7 +40,7 @@
             </form>
             <div class="mt-6 text-center">
                 <span class="text-gray-600">Don't have an account?</span>
-                <a href="{{ route('register') }}" class="text-pink-500 hover:underline font-semibold ml-1">Sign up</a>
+                <a href="{{ route('register') }}" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Sign up</a>
             </div>
         </div>
     </div>

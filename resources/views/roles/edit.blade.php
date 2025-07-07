@@ -12,6 +12,7 @@
         </ul>
     </div>
     @endif
+    @can('role-edit')
     <form action="{{ route('roles.update', $role->id) }}" method="POST" class="bg-white p-6 rounded shadow-md">
         @csrf
         @method('PUT')
@@ -34,5 +35,6 @@
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Update Role</button>
         </div>
     </form>
+    @endcan
 </div>
 @endsection

@@ -89,8 +89,34 @@ class Bus extends Model
     {
         $allSeats = range(1, $this->seats);
         $bookedSeats = \App\Models\BookingSeat::where('bus_id', $this->id)->pluck('seat_number')->toArray();
-        // Convert bookedSeats to integers if needed
         $bookedSeats = array_map('intval', $bookedSeats);
-        return array_values(array_diff($allSeats, $bookedSeats));
+        // Exclude blocked seats for today
+        $today = now()->toDateString();
+        $blockedSeats = $this->blockedSeats()
+            ->where(function ($q) use ($today) {
+                $q->where('start_date', '<=', $today)
+                    ->where(function ($q2) use ($today) {
+                        $q2->whereNull('end_date')->orWhere('end_date', '>=', $today);
+                    });
+            })
+            ->pluck('seat_number')->toArray();
+        $blockedSeats = array_map('intval', $blockedSeats);
+        return array_values(array_diff($allSeats, $bookedSeats, $blockedSeats));
+    }
+
+    /**
+     * Get the recurring schedules for the bus.
+     */
+    public function schedules()
+    {
+        return $this->hasMany(BusSchedule::class);
+    }
+
+    /**
+     * Get the blocked seats for the bus.
+     */
+    public function blockedSeats()
+    {
+        return $this->hasMany(BlockedSeat::class);
     }
 }

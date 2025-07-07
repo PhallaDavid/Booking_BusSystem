@@ -140,4 +140,26 @@ class OfferController extends Controller
         return redirect()->route('offers.index')
             ->with('success', 'Offer deleted successfully');
     }
+
+    /**
+     * API: Get promotion notifications (image, content, description)
+     */
+    public function promotionNotifications()
+    {
+        $offers = Offer::where(function ($q) {
+            $q->whereNull('start_date')->orWhere('start_date', '<=', now());
+        })->where(function ($q) {
+            $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+        })->get();
+
+        $data = $offers->map(function ($offer) {
+            return [
+                'id' => $offer->id,
+                'image' => $offer->image ? asset('images/' . $offer->image) : null,
+                'content' => $offer->title,
+                'description' => $offer->conditions,
+            ];
+        });
+        return response()->json($data);
+    }
 }

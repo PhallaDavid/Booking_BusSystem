@@ -9,6 +9,8 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingApiController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -24,3 +26,10 @@ Route::middleware('auth:sanctum')->get('profile', [ProfileController::class, 'ap
 Route::middleware('auth:sanctum')->post('bookings', [BookingApiController::class, 'store']);
 Route::get('buses/{id}', [BusController::class, 'apiShow']);
 Route::get('buses-type/{type}', [BusController::class, 'apiByType']);
+Route::get('tickets/{id}', [TicketController::class, 'apiShow']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('my-bookings', [BookingApiController::class, 'myBookings']);
+    Route::post('user/bookings/{id}/cancel', [BookingApiController::class, 'cancelBooking']);
+});
+Route::get('promotion-notifications', [OfferController::class, 'promotionNotifications']);
+Route::get('notifications', [NotificationController::class, 'apiIndex']);

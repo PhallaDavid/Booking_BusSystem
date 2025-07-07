@@ -19,7 +19,7 @@
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100">
      
-        <main class="w-full   bg-white rounded-lg shadow-lg p-8 mt-4">
+        <main class="w-full   bg-white rounded-lg shadow-lg p-8 ">
             {{ $slot }}
         </main>
     </div>

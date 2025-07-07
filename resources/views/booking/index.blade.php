@@ -37,19 +37,20 @@
         </div>
     </form>
     <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
+        <table class="min-w-full text-base font-normal rounded divide-y divide-gray-200">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">N.O</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Original</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seats</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">N.O</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">User</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Bus</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Date</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Status</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Original</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Discount</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Total</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Seats</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Payment</th>
+                    <th class="px-6 py-3 text-left text-base font-medium text-gray-500 uppercase">Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,6 +74,7 @@
                     <td class="px-6 py-4">${{ number_format($booking->discount_amount, 2) }}</td>
                     <td class="px-6 py-4">${{ number_format($booking->total_price, 2) }}</td>
                     <td class="px-6 py-4">{{ $booking->seats->pluck('seat_number')->join(', ') }}</td>
+                    <td class="px-6 py-4">{{ ucfirst($booking->payment_method) ?? '-' }}</td>
                     <td class="px-6 py-4 relative">
                         <div x-data="{ open: false, showModal: false }" class="relative inline-block text-left">
                             <button type="button" @click="open = !open" class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none" id="menu-button-{{ $booking->id }}" aria-expanded="true" aria-haspopup="true">
@@ -83,14 +85,15 @@
                             </button>
                             <div x-show="open" @click.away="open = false" class="origin-top-right absolute right-0 mt-2 w-28 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50" role="menu" aria-orientation="vertical" aria-labelledby="menu-button-{{ $booking->id }}">
                                 <div class="py-1" role="none">
-                                    <button type="button" @click="showModal = true; open = false" class="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-100" role="menuitem">View</button>
                                     @can('booking-edit')
                                     @if($booking->status !== 'confirmed')
                                     <form action="{{ route('bookings.update', $booking->id) }}" method="POST" onsubmit="return confirm('Confirm this booking?');">
                                         @csrf
                                         @method('PUT')
                                         <input type="hidden" name="action" value="confirm">
-                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-emerald-700 hover:bg-emerald-100">Confirm</button>
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-emerald-700 hover:bg-emerald-100 flex items-center gap-2">
+                                            <i class="fas fa-edit"></i> Confirm
+                                        </button>
                                     </form>
                                     @endif
                                     @if($booking->status !== 'cancelled')
@@ -98,7 +101,9 @@
                                         @csrf
                                         @method('PUT')
                                         <input type="hidden" name="action" value="cancel">
-                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-100">Cancel</button>
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-100 flex items-center gap-2">
+                                            <i class="fas fa-times-circle"></i> Cancel
+                                        </button>
                                     </form>
                                     @endif
                                     @endcan
@@ -106,7 +111,9 @@
                                     <form action="{{ route('bookings.destroy', $booking->id) }}" method="POST" onsubmit="return confirm('Delete this booking?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-100">Delete</button>
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-100 flex items-center gap-2">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
                                     </form>
                                     @endcan
                                 </div>

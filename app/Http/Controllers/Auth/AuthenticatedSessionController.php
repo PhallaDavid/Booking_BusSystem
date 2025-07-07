@@ -26,13 +26,20 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $user = $request->user();
-            $token = $user->createToken('auth_token')->plainTextToken;
+        // If the request expects JSON (API)
+        if ($request->expectsJson() || $request->is('api/*')) {
+            $user = $request->user();
+            $token = $user->createToken('api-token')->plainTextToken;
             return response()->json([
-                'access_token' => $token,
-                'token_type' => 'Bearer',
+                'message' => 'Login successful',
                 'user' => $user,
+                'token' => $token,
             ]);
+        }
+
+        // Only for web: regenerate session
+        $request->session()->regenerate();
+        return redirect()->intended('/dashboard');
     }
 
     /**

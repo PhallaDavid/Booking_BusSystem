@@ -22,6 +22,7 @@
 </head>
 
 <body class="font-sans antialiased bg-gray-100">
+    <x-notification />
     <div class="min-h-screen flex bg-gray-100">
         @include('layouts.sidebar')
 

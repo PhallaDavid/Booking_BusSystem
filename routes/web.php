@@ -10,6 +10,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\OfferController;
 use App\Http\Controllers\BusController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\NotificationController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -38,6 +39,18 @@ Route::middleware('auth')->group(function () {
     Route::post('booking/bus/{busId}/passenger-info', [BookingController::class, 'passengerInfo'])->name('booking.passengerInfo');
     Route::post('booking/bus/{busId}/store', [BookingController::class, 'store'])->name('booking.store');
     Route::resource('bookings', BookingController::class)->only(['index', 'update', 'destroy', 'show'])->middleware('permission:booking-list|booking-edit|booking-delete|booking-show');
+
+    // Bus schedules routes
+    Route::get('buses/{bus}/schedules', [BusController::class, 'schedules'])->name('buses.schedules');
+    Route::post('buses/{bus}/schedules', [BusController::class, 'storeSchedule'])->name('buses.storeSchedule');
+    Route::delete('buses/{bus}/schedules/{schedule}', [BusController::class, 'destroySchedule'])->name('buses.destroySchedule');
+
+    // Notification routes
+    Route::post('notifications', [NotificationController::class, 'store'])->name('notifications.store');
+    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/{notification}/edit', [App\Http\Controllers\NotificationController::class, 'edit'])->name('notifications.edit');
+    Route::put('notifications/{notification}', [App\Http\Controllers\NotificationController::class, 'update'])->name('notifications.update');
+    Route::delete('notifications/{notification}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy');
 });
 
 Route::get('/auth/google', [App\Http\Controllers\Auth\GoogleLoginController::class, 'redirectToGoogle'])->name('auth.google');

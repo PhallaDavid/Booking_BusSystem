@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold">Roles</h2>
         @can('role-create')
-        <a href="{{ route('roles.create') }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 font-semibold shadow">Create Role</a>
+        <a href="{{ route('roles.create') }}" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mb-4 inline-block">Create Role</a>
         @endcan
     </div>
     <form method="GET" action="{{ route('settings.index') }}" class="mb-4 flex items-center space-x-2">
@@ -29,14 +29,17 @@
                 <td class="px-4 py-2 border">{{ $role->name }}</td>
                 <td class="px-4 py-2 border">{{ $role->permissions->pluck('name')->join(', ') }}</td>
                 <td class="px-4 py-2 border">
+                    @can('role-show')
+                    <a href="{{ route('roles.show', $role->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View</a>
+                    @endcan
                     @can('role-edit')
-                    <a href="{{ route('roles.edit', $role) }}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors duration-200 mr-2">Edit</a>
+                    <a href="{{ route('roles.edit', $role->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Edit</a>
                     @endcan
                     @can('role-delete')
-                    <form action="{{ route('roles.destroy', $role) }}" method="POST" class="inline">
+                    <form action="{{ route('roles.destroy', $role->id) }}" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors duration-200" onclick="return confirm('Are you sure?')">Delete</button>
+                        <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600" onclick="return confirm('Are you sure?')">Delete</button>
                     </form>
                     @endcan
                 </td>

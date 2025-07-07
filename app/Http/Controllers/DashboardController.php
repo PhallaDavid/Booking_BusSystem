@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
@@ -25,7 +26,7 @@ class DashboardController extends Controller
         // Profit by month
         $year = $request->input('year', now()->year);
         $month = $request->input('month');
-        $query = Booking::query()->where('status', 'confirmed');
+        $query = Booking::query();
         if ($year) {
             $query->whereYear('travel_date', $year);
         }
@@ -51,6 +52,10 @@ class DashboardController extends Controller
         $profitLabels = isset($profitLabels) && is_array($profitLabels) ? $profitLabels : [];
         $profitData = isset($profitData) && is_array($profitData) ? $profitData : [];
 
+        // Gross and Net Totals (all bookings, like bookings page)
+        $grossTotal = Booking::sum('total_price');
+        $netTotal = Booking::sum(DB::raw('total_price - discount_amount'));
+
         return view('dashboard', compact(
             'userCount',
             'roleCount',
@@ -60,7 +65,9 @@ class DashboardController extends Controller
             'profitLabels',
             'profitData',
             'year',
-            'month'
+            'month',
+            'grossTotal',
+            'netTotal'
         ));
     }
 }
